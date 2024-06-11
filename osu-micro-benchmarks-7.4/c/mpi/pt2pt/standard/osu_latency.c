@@ -9,6 +9,7 @@
  * copyright file COPYRIGHT in the top level OMB directory.
  */
 #include <osu_util_mpi.h>
+#include "KokkosComm.hpp"
 
 double calculate_total(double, double, double);
 
@@ -194,11 +195,13 @@ int main(int argc, char *argv[])
                             touch_managed_src_no_window(s_buf, size, ADD);
                         }
 #endif /* #ifdef _ENABLE_CUDA_KERNEL_ */
-                        MPI_CHECK(MPI_Send(s_buf, num_elements,
-                                           omb_curr_datatype, 1, 1, omb_comm));
-                        MPI_CHECK(MPI_Recv(r_buf, num_elements,
-                                           omb_curr_datatype, 1, 1, omb_comm,
-                                           &reqstat));
+                        // MPI_CHECK(MPI_Send(s_buf, num_elements,
+                        //                    omb_curr_datatype, 1, 1, omb_comm));
+                        MPI_CHECK(KokkosComm::send(Kokkos::DefaultExecutionSpace(), 1, omb_comm)); //TODO
+                        // MPI_CHECK(MPI_Recv(r_buf, num_elements,
+                        //                    omb_curr_datatype, 1, 1, omb_comm,
+                        //                    &reqstat));
+                        MPI_CHECK(KokkosComm::recv(Kokkos::DefaultExecutionSpace(), 1, omb_comm)); //TODO
 #ifdef _ENABLE_CUDA_KERNEL_
                         if (options.src == 'M') {
                             touch_managed_src_no_window(r_buf, size, SUB);
@@ -228,8 +231,9 @@ int main(int argc, char *argv[])
                     }
                     if (options.validate) {
                         int errors_recv = 0;
-                        MPI_CHECK(MPI_Recv(&errors_recv, 1, MPI_INT, 1, 2,
-                                           omb_comm, &reqstat));
+                        // MPI_CHECK(MPI_Recv(&errors_recv, 1, MPI_INT, 1, 2,
+                        //                    omb_comm, &reqstat));
+                        MPI_CHECK(KokkosComm::recv(Kokkos::DefaultExecutionSpace(), 1, omb_comm)); //TODO
                         errors += errors_recv;
                     }
                 } else if (myid == 1) {
@@ -239,16 +243,18 @@ int main(int argc, char *argv[])
                             touch_managed_dst_no_window(s_buf, size, ADD);
                         }
 #endif /* #ifdef _ENABLE_CUDA_KERNEL_ */
-                        MPI_CHECK(MPI_Recv(r_buf, num_elements,
-                                           omb_curr_datatype, 0, 1, omb_comm,
-                                           &reqstat));
+                        // MPI_CHECK(MPI_Recv(r_buf, num_elements,
+                        //                    omb_curr_datatype, 0, 1, omb_comm,
+                        //                    &reqstat));
+                        MPI_CHECK(KokkosComm::recv(Kokkos::DefaultExecutionSpace(), 1, omb_comm)); //TODO 
 #ifdef _ENABLE_CUDA_KERNEL_
                         if (options.dst == 'M') {
                             touch_managed_dst_no_window(r_buf, size, SUB);
                         }
 #endif /* #ifdef _ENABLE_CUDA_KERNEL_ */
-                        MPI_CHECK(MPI_Send(s_buf, num_elements,
-                                           omb_curr_datatype, 0, 1, omb_comm));
+                        // MPI_CHECK(MPI_Send(s_buf, num_elements,
+                        //                    omb_curr_datatype, 0, 1, omb_comm));
+                        MPI_CHECK(KokkosComm::send(Kokkos::DefaultExecutionSpace(), 1, omb_comm)); //TODO
                     }
 #ifdef _ENABLE_CUDA_KERNEL_
                     if (options.validate &&
@@ -266,8 +272,9 @@ int main(int argc, char *argv[])
                     if (options.validate) {
                         errors = validate_data(r_buf, size, 1, options.accel, i,
                                                omb_curr_datatype);
-                        MPI_CHECK(
-                            MPI_Send(&errors, 1, MPI_INT, 0, 2, omb_comm));
+                        // MPI_CHECK(
+                        //     MPI_Send(&errors, 1, MPI_INT, 0, 2, omb_comm));
+                        MPI_CHECK(KokkosComm::send(Kokkos::DefaultExecutionSpace(), 1, omb_comm)); //TODO
                     }
                 }
             }
